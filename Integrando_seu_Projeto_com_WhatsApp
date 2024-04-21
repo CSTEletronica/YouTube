@@ -1,0 +1,81 @@
+ /*Integrando seu projeto com WhatsApp
+ * Autor: Eduardo Castro
+ * Set: NodeMCU 1.0
+ * Data da última atualização: 14/04/2024
+ * Horário da última atualização: 16:00
+ */
+// ======================================================================
+
+
+// ======================================================================
+// --- Inclusão de bibliotecas ---
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include <WiFiClient.h>
+#include <UrlEncode.h>
+// ======================================================================
+// --- Variáveis Globais -
+int pot = A0;
+int valor = 0;
+// Insira seu SSID e PASSWORD
+const char* ssid = "SEU_SSID";
+const char* password = "SUA_SENHA";
+// +código internacional + DDD + número de telefone
+// Brasil +55, exemplo: +5519912345678
+String numeroTelefone = "+5519912345678";
+String apiKey = "1234567";
+
+void sendMessage(String message){
+
+// Dados a serem enviados com HTTP POST
+  String url = "http://api.callmebot.com/whatsapp.php?phone=" + numeroTelefone + "&apikey=" + apiKey + "&text=" + urlEncode(message);
+  WiFiClient client;    
+  HTTPClient http;
+  http.begin(client, url);
+// Especificação do cabeçalho
+  http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+  
+// Enviar requisição HTTP POST
+  int httpResponseCode = http.POST(url);
+  if (httpResponseCode == 200){
+    Serial.println("Mensagem enviada com sucesso");
+  }
+  else{
+    Serial.println("Erro no envio da resposta");
+    Serial.print("HTTP código de resposta: ");
+    Serial.println(httpResponseCode);
+  }
+  http.end();
+}
+// ======================================================================
+// --- Void setup ---
+void setup() {
+  Serial.begin(115200);
+
+  WiFi.begin(ssid, password);
+  Serial.println("Conectando");
+  while(WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("");
+  Serial.print("Conectado à rede WiFi com endereço IP: ");
+  Serial.println(WiFi.localIP());
+
+  // Envia mensagem pelo WhatsApp
+  sendMessage("Estamos conectados!");
+}
+// ======================================================================
+// --- Void loop ---
+void loop() {
+  valor = analogRead(pot);
+  Serial.print("Valor lido: ");
+  Serial.println(valor);
+  if (valor >= 500){
+    sendMessage("*ALERTA - Alarme de leitura*");
+    delay(5000);
+  }
+  else{
+  }
+delay(3000);
+}
